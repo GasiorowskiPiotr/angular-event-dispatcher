@@ -1,0 +1,25 @@
+{
+  "name": "angular-event-emitter",
+  "version": "0.0.1",
+  "authors": [
+    "Piotr Gąsiorowski <gasiorowski.piotr@gmail.com>"
+  ],
+  "description": "Angular Event Emitter, something that should be far better than usual Angular $broadcase and $emit",
+  "keywords": [
+    "angular",
+    "event"
+  ],
+  "license": "MIT",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "q": "1.0.1",
+    "angularjs": "~1.3.1",
+    "DefinitelyTyped": "*"
+  }
+}
