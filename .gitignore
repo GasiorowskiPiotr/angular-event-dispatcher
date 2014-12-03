@@ -1,2 +1,9 @@
 bower_components/*
 node_modules/*
+AngularEventDispatcher.csproj.user
+AngularEventDispatcher.v12.suo
+AngularEventDispatcher.sln.DotSettings.user
+doc/*
+obj/*
+dist/*
+coverage/*
