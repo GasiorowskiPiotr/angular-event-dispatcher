@@ -7,3 +7,5 @@ doc/*
 obj/*
 dist/*
 coverage/*
+bin/*
+src/*.js*

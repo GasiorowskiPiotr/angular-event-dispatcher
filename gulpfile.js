@@ -1,3 +1,4 @@
+/// <vs AfterBuild='default' Clean='clean' />
 var gulp = require('gulp');
 
 var del			= require('del');
