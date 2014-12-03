@@ -15,8 +15,9 @@ module.exports = function(config) {
     files: [
       'bower_components/angularjs/angular.js',
       'bower_components/angular-mocks/angular-mocks.js',
+      'bower_components/underscore/underscore.js',
       'test/**/*.spec.js',
-      'dist/js/*.min.js'
+      'dist/js/src/*.js'
     ],
 
     // test results reporter to use
@@ -37,7 +38,7 @@ module.exports = function(config) {
 
     // start these browsers
     // available browser launchers: https://npmjs.org/browse/keyword/karma-launcher
-    browsers: ['Chrome', 'Firefox', 'PhantomJS'],
+    browsers: [/*'Chrome', 'Firefox', */'PhantomJS'],
 
     plugins: ['karma-jasmine', 'karma-chrome-launcher', 'karma-firefox-launcher', 'karma-phantomjs-launcher', 'karma-coverage'],
 
@@ -49,7 +50,7 @@ module.exports = function(config) {
       // source files, that you wanna generate coverage for
       // do not include tests or libraries
       // (these files will be instrumented by Istanbul)
-      'dist/js/*.min.js': ['coverage']
+      'dist/js/src/*.js': ['coverage']
     },
 
     coverageReporter: {

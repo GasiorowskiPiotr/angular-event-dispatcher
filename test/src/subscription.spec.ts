@@ -187,6 +187,19 @@ describe("Tagged Subscription Tests", () => {
         expect(s.subscription).toBeDefined();
     });
 
+    it('should create a Tagged Subscription with general wrapped promise', () => {
+        var s1 = evilduck.TagSubscription.General('general-1', basicFunction);
+        var s2 = evilduck.TagSubscription.General('general-2', promiseFunction);
+
+        expect(s1).toBeDefined();
+        expect(s1.tagName).toEqual('general-1');
+        expect(s1.subscription).toBeDefined();
+
+        expect(s2).toBeDefined();
+        expect(s2.tagName).toEqual('general-2');
+        expect(s2.subscription).toBeDefined();
+    });
+
 
     it('should wrap a Promise from Basic Subscription', (done) => {
         var s = evilduck.TagSubscription.Basic('basic', basicFunction, scope);
@@ -206,5 +219,127 @@ describe("Tagged Subscription Tests", () => {
             expect(res).toEqual(1);
             done();
         });
+    });
+
+    it('should wrap a Promise from General Subscription built with promise', (done) => {
+        var s = evilduck.TagSubscription.General('general-1', promiseFunction);
+        var promise = s.wrap($q);
+
+        promise.then((res) => {
+            expect(res).toEqual(1);
+            done();
+        });
+    });
+
+    it('should wrap a Promise from General Subscription built with basic function', (done) => {
+        var s = evilduck.TagSubscription.General('general-2', basicFunction);
+        var promise = s.wrap($q);
+
+        promise.then((res) => {
+            expect(res).toEqual(1);
+            done();
+        });
+
+        scope.$digest();
+    });
+});
+
+describe("Event Subscription", () => {
+    var $q: ng.IQService;
+    var $rootScope: ng.IRootScopeService;
+    var scope: ng.IScope;
+
+    beforeEach(module('evilduck.eventDispatcher'));
+
+    beforeEach(inject((_$q_: ng.IQService, _$rootScope_: ng.IRootScopeService) => {
+        $q = _$q_;
+        $rootScope = _$rootScope_;
+        scope = $rootScope.$new();
+    }));
+
+    it('should create a Event Subscription', () => {
+        var e = new evilduck.EventSubscription('event1');
+        expect(e).toBeDefined();
+        expect(e.eventName).toEqual('event1');
+    });
+
+    it('should add general (default) Subscription with tag', () => {
+        var e = new evilduck.EventSubscription('event1');
+        e.subscribe(() => 1, 'tag1');
+
+        var item = _.findWhere((<any>e)._tagSubs, { tagName: 'tag1' });
+        expect(item).toBeDefined();
+
+        expect((<any>e)._subs.length).toEqual(0);
+    });
+
+    it('should add general (default) Subscription without tag', () => {
+        var e = new evilduck.EventSubscription('event1');
+        e.subscribe(() => 1);
+
+        var item = _.findWhere((<any>e)._tagSubs, { tagName: 'tag1' });
+        expect(item).toBeFalsy();
+
+        expect((<any>e)._subs.length).toEqual(1);
+    });
+
+    it('should add Basic Subscription with tag', () => {
+        var e = new evilduck.EventSubscription('event1');
+        e.subscribeBasic(scope, () => 1, 'tag1');
+
+        var item = _.findWhere((<any>e)._tagSubs, { tagName : 'tag1' });
+        expect(item).toBeDefined();
+
+        expect((<any>e)._subs.length).toEqual(0);
+    });
+
+    it('should add Basic Subscription without tag', () => {
+        var e = new evilduck.EventSubscription('event1');
+        e.subscribeBasic(scope, () => 1);
+
+        var item = _.findWhere((<any>e)._tagSubs, { tagName: 'tag1' });
+        expect(item).toBeFalsy();
+
+        expect((<any>e)._subs.length).toEqual(1);
+    });
+
+    it('should add Promise Subscription with tag', () => {
+        var e = new evilduck.EventSubscription('event1');
+        e.subscribePromise(() => {
+            var deferred = $q.defer();
+
+            setTimeout(() => {
+                $rootScope.$apply(() => {
+                    deferred.resolve(1);
+                });
+            }, 1);
+
+            return deferred.promise;
+        }, 'tag1');
+
+        var item = _.findWhere((<any>e)._tagSubs, { tagName: 'tag1' });
+        expect(item).toBeDefined();
+
+        expect((<any>e)._subs.length).toEqual(0);
+    });
+
+    it('should add Promise Subscription without tag', () => {
+        var e = new evilduck.EventSubscription('event1');
+        e.subscribePromise(() => {
+            var deferred = $q.defer();
+
+            setTimeout(() => {
+                $rootScope.$apply(() => {
+                    deferred.resolve(1);
+                });
+            }, 1);
+
+            return deferred.promise;
+        });
+
+        var item = _.findWhere((<any>e)._tagSubs, { tagName: 'tag1' });
+        expect(item).toBeFalsy();
+
+        expect((<any>e)._subs.length).toEqual(1);
     });
 });

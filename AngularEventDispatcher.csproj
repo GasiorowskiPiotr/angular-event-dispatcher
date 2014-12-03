@@ -27,7 +27,7 @@
   <ItemGroup>
     <TypeScriptCompile Include="app.ts" />
     <TypeScriptCompile Include="src\subscriptions.ts" />
-    <TypeScriptCompile Include="test\first\subscription.spec.ts" />
+    <TypeScriptCompile Include="test\src\subscription.spec.ts" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="bower.json" />

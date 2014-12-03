@@ -9,3 +9,4 @@ dist/*
 coverage/*
 bin/*
 src/*.js*
+test/src/*.spec.js*

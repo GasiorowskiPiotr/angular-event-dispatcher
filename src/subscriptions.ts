@@ -7,7 +7,11 @@ module evilduck {
         wrap($q: ng.IQService): ng.IPromise<any>;
     }
 
-    export class EventSubscription implements ISubscription {
+    export interface IEventSubscription {
+        wrap($q: ng.IQService, tagName: string): ng.IPromise<any>;
+    }
+
+    export class EventSubscription implements IEventSubscription {
         private _eventName: string;
         private _tagSubs: TagSubscription[];
         private _subs: ISubscription[];
@@ -22,7 +26,8 @@ module evilduck {
             return this._eventName;
         }
 
-        public subscribe(scope: ng.IScope, func: () => any, returnsPromise: boolean) {
+        public subscribe(func: () => any, tag: string = null): void {
+            this.subscribeGeneral(func, tag);
         }
 
         public subscribeBasic(scope: ng.IScope, func: () => void, tag: string = null): void {
@@ -41,23 +46,35 @@ module evilduck {
             }
         }
 
-        public get tagSubscriptions(): TagSubscription[]{
-            return this._tagSubs;
-        }
-
-        public get subscriptions(): ISubscription[]{
-            return this._subs;
-        }
-
-        public wrap($q: ng.IQService): ng.IPromise<any> {
-
-            var promise = $q.when(this._subs[0].wrap($q));
-            var i = 1;
-            while (i < this._subs.length) {
-                promise = promise.then(() => this._subs[i].wrap($q));
+        public subscribeGeneral(func: () => any, tag: string = null): void {
+            if (tag) {
+                this._tagSubs.push(TagSubscription.General(tag, func));
+            } else {
+                this._subs.push(new GeneralSubscription(func));
             }
-            while (i < this._tagSubs.length) {
-                promise = promise.then(() => this._tagSubs[i].wrap($q));
+        }
+
+        public wrap($q: ng.IQService, tagName: string = null): ng.IPromise<any> {
+
+            var subs: ISubscription[];
+            var tagSubs: TagSubscription[];
+
+            if (tagName) {
+                subs = new Array<ISubscription>();
+                // TODO: Cache it
+                tagSubs = _.filter(this._tagSubs, (ts: TagSubscription) => ts.tagName === tagName);
+            } else {
+                subs = this._subs;
+                tagSubs = this._tagSubs;
+            }
+
+            var promise = $q.when(subs[0].wrap($q));
+            var i = 1;
+            while (i < subs.length) {
+                promise = promise.then(() => subs[i].wrap($q));
+            }
+            while (i < tagSubs.length) {
+                promise = promise.then(() => tagSubs[i].wrap($q));
             }
 
             return promise;
@@ -115,10 +132,6 @@ module evilduck {
         private _func: () => any;
         private _scope: ng.IScope;
 
-        public get func(): () => any {
-            return this._func;
-        }
-
         public wrap($q: ng.IQService): ng.IPromise<any> {
             var deferral = $q.defer();
 
@@ -145,10 +158,6 @@ module evilduck {
             this._func = func;
         }
 
-        public get func(): () => ng.IPromise<any> {
-            return this._func;
-        }
-
         public wrap($q: ng.IQService): ng.IPromise<any> {
             return this._func();
         }
@@ -161,10 +170,6 @@ module evilduck {
 
         constructor(func: () => any) {
             this._func = func;
-        }
-
-        public get func(): () => ng.IPromise<any> {
-            return this._func;
         }
 
         public wrap($q: ng.IQService): ng.IPromise<any> {

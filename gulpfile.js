@@ -85,3 +85,11 @@ gulp.task('karma-watch', function(done){
 gulp.task('default', function(done) {
 	runSequence('clean', ['lint', 'doc'], ['compile', 'compile-test'], 'minify', 'karma', done);
 });
+
+gulp.task('fast', function(done) {
+    runSequence('clean', ['compile', 'compile-test'], 'karma', done);
+});
+
+gulp.task('watch', function() {
+    gulp.watch(['src/**/*.ts', 'test/src/**/*.ts'], ['fast']);
+});
