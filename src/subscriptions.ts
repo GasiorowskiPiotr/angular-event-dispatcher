@@ -22,6 +22,25 @@ module evilduck {
             return this._eventName;
         }
 
+        public subscribe(scope: ng.IScope, func: () => any, returnsPromise: boolean) {
+        }
+
+        public subscribeBasic(scope: ng.IScope, func: () => void, tag: string = null): void {
+            if (tag) {
+                this._tagSubs.push(TagSubscription.Basic(tag, func, scope));
+            } else {
+                this._subs.push(new BasicSubscription(func, scope));
+            }
+        }
+
+        public subscribePromise(func: () => ng.IPromise<any>, tag: string = null): void {
+            if (tag) {
+                this._tagSubs.push(TagSubscription.Promise(tag, func));
+            } else {
+                this._subs.push(new PromiseSubscription(func));
+            }
+        }
+
         public get tagSubscriptions(): TagSubscription[]{
             return this._tagSubs;
         }
@@ -60,6 +79,14 @@ module evilduck {
         public static Promise(tagName: string, func: () => ng.IPromise<any>): TagSubscription {
             var s = new TagSubscription();
             s._sub = new PromiseSubscription(func);
+            s._tagName = tagName;
+
+            return s;
+        }
+
+        public static General(tagName: string, func: () => any): TagSubscription {
+            var s = new TagSubscription();
+            s._sub = new GeneralSubscription(func);
             s._tagName = tagName;
 
             return s;
@@ -114,7 +141,7 @@ module evilduck {
 
         private _func: () => ng.IPromise<any>;
 
-        constructor(func: () => any) {
+        constructor(func: () => ng.IPromise<any>) {
             this._func = func;
         }
 
@@ -124,6 +151,24 @@ module evilduck {
 
         public wrap($q: ng.IQService): ng.IPromise<any> {
             return this._func();
+        }
+
+    }
+
+    export class GeneralSubscription implements ISubscription {
+
+        private _func: () => any;
+
+        constructor(func: () => any) {
+            this._func = func;
+        }
+
+        public get func(): () => ng.IPromise<any> {
+            return this._func;
+        }
+
+        public wrap($q: ng.IQService): ng.IPromise<any> {
+            return $q.when(this._func());
         }
 
     }

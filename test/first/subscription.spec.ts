@@ -82,6 +82,70 @@ describe("Basic Subscription Tests", () => {
     });
 });
 
+describe("General Subscription Tests", () => {
+    var $q: ng.IQService;
+    var $rootScope: ng.IRootScopeService;
+    var scope: ng.IScope;
+
+    beforeEach(module('evilduck.eventDispatcher'));
+
+    beforeEach(inject((_$q_: ng.IQService, _$rootScope_: ng.IRootScopeService) => {
+        $q = _$q_;
+        $rootScope = _$rootScope_;
+        scope = $rootScope.$new();
+    }));
+
+    var basicFunction = () => 1;
+
+    var promiseFunction = () => {
+        var deferred = $q.defer();
+
+        setTimeout(() => {
+            $rootScope.$apply(() => {
+                deferred.resolve(1);
+            });
+        }, 1);
+
+        return deferred.promise;
+    };
+
+    it('should create a General subscription from basic function', () => {
+        var s = new evilduck.GeneralSubscription(basicFunction);
+        expect(s).toBeDefined();
+    });
+
+    it('should create a General Subscription from promise function', () => {
+        var s = new evilduck.GeneralSubscription(promiseFunction);
+        expect(s).toBeDefined();
+    });
+
+
+    it('should wrap a Promise from General subscription with basic function', (done) => {
+        var s = new evilduck.GeneralSubscription(basicFunction);
+        var promise = s.wrap($q);
+
+        promise.then((res) => {
+            expect(res).toEqual(1);
+            done();
+        });
+
+        scope.$digest();
+    });
+
+    it('should wrap a Promise from General subscription with promise function', (done) => {
+        var s = new evilduck.GeneralSubscription(promiseFunction);
+        var promise = s.wrap($q);
+
+        promise.then((res) => {
+            expect(res).toEqual(1);
+            done();
+        });
+
+        scope.$digest();
+    });
+});
+
+
 describe("Tagged Subscription Tests", () => {
     var $q: ng.IQService;
     var $rootScope: ng.IRootScopeService;
