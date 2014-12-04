@@ -3,12 +3,78 @@
 
 module evilduck {
 
+    export class EventDispatcher {
+        
+        private _innerDict: any;
+
+        constructor() {
+            this._innerDict = {};
+        }
+
+
+        public on(event: string, handler: () => any, tag: string = null): SubscriptionInfo {
+
+            if (!event) {
+                throw new Error('Event name must not be empty');
+            }
+
+            if (!handler) {
+                throw new Error('Handler must be defined');
+            }
+
+            if (!this._innerDict[event]) {
+                this._innerDict[event] = new EventSubscription(event);
+            } 
+
+            return (<EventSubscription>this._innerDict[event]).subscribe(handler, tag);
+        }
+
+        public ngOn(scope: ng.IScope, event: string, handler: () => any, tag: string = null): void {
+
+            var subsInfo = this.on(event, handler, tag);
+
+            scope.$on('destroy', () => {
+                subsInfo.destoy();
+            });
+        }
+
+        public once(event: string, handler: () => any, tag: string = null) {
+            
+        }
+
+    }
+
     export interface ISubscription {
         wrap($q: ng.IQService): ng.IPromise<any>;
     }
 
     export interface IEventSubscription {
         wrap($q: ng.IQService, tagName: string): ng.IPromise<any>;
+    }
+
+    export class SubscriptionInfo {
+        
+        constructor(event: string, arr: Array<ISubscription>, tag: string = null) {
+            this.event = event;
+            this.idx = arr.length -1;
+            this.tag = tag;
+            this.arr = arr;
+            this.isDestroyed = false;
+        }
+
+        private event: string;
+        private idx: number;
+        private tag: string;
+        private arr: Array<ISubscription>;
+        private isDestroyed: boolean;
+
+        public destoy(): void {
+            if (!this.isDestroyed) {
+                //this.arr.splice(this.idx, 1); // TODO: this needs to be refactored
+                this.isDestroyed = true;
+            }
+        }
+
     }
 
     export class EventSubscription implements IEventSubscription {
@@ -26,31 +92,37 @@ module evilduck {
             return this._eventName;
         }
 
-        public subscribe(func: () => any, tag: string = null): void {
-            this.subscribeGeneral(func, tag);
+        public subscribe(func: () => any, tag: string = null): SubscriptionInfo {
+            return this.subscribeGeneral(func, tag);
         }
 
-        public subscribeBasic(scope: ng.IScope, func: () => void, tag: string = null): void {
+        public subscribeBasic(func: () => void, tag: string = null): SubscriptionInfo {
             if (tag) {
-                this._tagSubs.push(TagSubscription.Basic(tag, func, scope));
+                this._tagSubs.push(TagSubscription.Basic(tag, func));
+                return new SubscriptionInfo(this._eventName, this._tagSubs);
             } else {
-                this._subs.push(new BasicSubscription(func, scope));
+                this._subs.push(new BasicSubscription(func));
+                return new SubscriptionInfo(this._eventName, this._subs);
             }
         }
 
-        public subscribePromise(func: () => ng.IPromise<any>, tag: string = null): void {
+        public subscribePromise(func: () => ng.IPromise<any>, tag: string = null): SubscriptionInfo {
             if (tag) {
                 this._tagSubs.push(TagSubscription.Promise(tag, func));
+                return new SubscriptionInfo(this._eventName, this._tagSubs, tag);
             } else {
                 this._subs.push(new PromiseSubscription(func));
+                return new SubscriptionInfo(this._eventName, this._subs);
             }
         }
 
-        public subscribeGeneral(func: () => any, tag: string = null): void {
+        public subscribeGeneral(func: () => any, tag: string = null): SubscriptionInfo {
             if (tag) {
                 this._tagSubs.push(TagSubscription.General(tag, func));
+                return new SubscriptionInfo(this._eventName, this._tagSubs, tag);
             } else {
                 this._subs.push(new GeneralSubscription(func));
+                return new SubscriptionInfo(this._eventName, this._subs);
             }
         }
 
@@ -68,16 +140,16 @@ module evilduck {
                 tagSubs = this._tagSubs;
             }
 
-            var promise = $q.when(subs[0].wrap($q));
-            var i = 1;
-            while (i < subs.length) {
-                promise = promise.then(() => subs[i].wrap($q));
-            }
-            while (i < tagSubs.length) {
-                promise = promise.then(() => tagSubs[i].wrap($q));
+            var toExec = _.union(subs, tagSubs);
+            if (toExec.length == 0) {
+                return $q.when();
             }
 
-            return promise;
+            var promises = _.map(toExec, (sub: ISubscription) => {
+                return sub.wrap($q);
+            });
+
+            return $q.all(promises);
         }
     }
 
@@ -85,9 +157,9 @@ module evilduck {
         private _tagName: string;
         private _sub: ISubscription;
 
-        public static Basic(tagName: string, func: () => any, scope: ng.IScope): TagSubscription {
+        public static Basic(tagName: string, func: () => any): TagSubscription {
             var s = new TagSubscription();
-            s._sub = new BasicSubscription(func, scope);
+            s._sub = new BasicSubscription(func);
             s._tagName = tagName;
 
             return s;
@@ -124,9 +196,8 @@ module evilduck {
 
     export class BasicSubscription implements ISubscription {
 
-        constructor(func: () => any, $scope: ng.IScope) {
+        constructor(func: () => any) {
             this._func = func;
-            this._scope = $scope;
         }
 
         private _func: () => any;
@@ -135,16 +206,12 @@ module evilduck {
         public wrap($q: ng.IQService): ng.IPromise<any> {
             var deferral = $q.defer();
 
-            setTimeout(() => {
-                this._scope.$apply(() => {
-                    try {
-                        var res = this._func();
-                        return deferral.resolve(res);
-                    } catch (err) {
-                        return deferral.reject(err);
-                    }
-                });
-            }, 1);
+            try {
+                var res = this._func();
+                deferral.resolve(res);
+            } catch (err) {
+                deferral.reject(err);
+            }
 
             return deferral.promise;
         }

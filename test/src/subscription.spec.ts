@@ -41,10 +41,13 @@ describe("Promise Subscription Tests", () => {
         var ps = createSubscription();
         var promise = ps.wrap($q);
 
-        promise.then((res) => {
-            expect(res).toEqual(1);
-            done();
+        scope.$apply(() => {
+            promise.then((res) => {
+                expect(res).toEqual(1);
+                done();
+            });
         });
+        
     });
 });
 
@@ -62,7 +65,7 @@ describe("Basic Subscription Tests", () => {
     }));
 
     var createSubscription = () => {
-        return new evilduck.BasicSubscription(() => 1, scope);
+        return new evilduck.BasicSubscription(() => 1);
     };
 
     it('should create a Promise Subscription', () => {
@@ -75,10 +78,14 @@ describe("Basic Subscription Tests", () => {
         var ps = createSubscription();
         var promise = ps.wrap($q);
 
-        promise.then((res) => {
-            expect(res).toEqual(1);
-            done();
+        scope.$apply(() => {
+            promise.then((res) => {
+                expect(res).toEqual(1);
+                done();
+            });
         });
+
+        
     });
 });
 
@@ -124,24 +131,24 @@ describe("General Subscription Tests", () => {
         var s = new evilduck.GeneralSubscription(basicFunction);
         var promise = s.wrap($q);
 
-        promise.then((res) => {
-            expect(res).toEqual(1);
-            done();
+        scope.$apply(() => {
+            promise.then((res) => {
+                expect(res).toEqual(1);
+                done();
+            });
         });
-
-        scope.$digest();
     });
 
     it('should wrap a Promise from General subscription with promise function', (done) => {
         var s = new evilduck.GeneralSubscription(promiseFunction);
         var promise = s.wrap($q);
 
-        promise.then((res) => {
-            expect(res).toEqual(1);
-            done();
+        scope.$apply(() => {
+            promise.then((res) => {
+                expect(res).toEqual(1);
+                done();
+            });
         });
-
-        scope.$digest();
     });
 });
 
@@ -174,7 +181,7 @@ describe("Tagged Subscription Tests", () => {
     };
 
     it('should create a Tagged Subscription with basic function', () => {
-        var s = evilduck.TagSubscription.Basic('basic', basicFunction, scope);
+        var s = evilduck.TagSubscription.Basic('basic', basicFunction);
         expect(s).toBeDefined();
         expect(s.tagName).toEqual('basic');
         expect(s.subscription).toBeDefined();
@@ -202,22 +209,27 @@ describe("Tagged Subscription Tests", () => {
 
 
     it('should wrap a Promise from Basic Subscription', (done) => {
-        var s = evilduck.TagSubscription.Basic('basic', basicFunction, scope);
+        var s = evilduck.TagSubscription.Basic('basic', basicFunction);
         var promise = s.wrap($q);
 
-        promise.then((res) => {
-            expect(res).toEqual(1);
-            done();
+        scope.$apply(() => {
+            promise.then((res) => {
+                expect(res).toEqual(1);
+                done();
+            });
         });
+        
     });
 
     it('should wrap a Promise from Promise Subscription', (done) => {
         var s = evilduck.TagSubscription.Promise('promise', promiseFunction);
         var promise = s.wrap($q);
 
-        promise.then((res) => {
-            expect(res).toEqual(1);
-            done();
+        scope.$apply(() => {
+            promise.then((res) => {
+                expect(res).toEqual(1);
+                done();
+            });
         });
     });
 
@@ -225,9 +237,11 @@ describe("Tagged Subscription Tests", () => {
         var s = evilduck.TagSubscription.General('general-1', promiseFunction);
         var promise = s.wrap($q);
 
-        promise.then((res) => {
-            expect(res).toEqual(1);
-            done();
+        scope.$apply(() => {
+            promise.then((res) => {
+                expect(res).toEqual(1);
+                done();
+            });
         });
     });
 
@@ -235,12 +249,12 @@ describe("Tagged Subscription Tests", () => {
         var s = evilduck.TagSubscription.General('general-2', basicFunction);
         var promise = s.wrap($q);
 
-        promise.then((res) => {
-            expect(res).toEqual(1);
-            done();
+        scope.$apply(() => {
+            promise.then((res) => {
+                expect(res).toEqual(1);
+                done();
+            });
         });
-
-        scope.$digest();
     });
 });
 
@@ -285,7 +299,7 @@ describe("Event Subscription", () => {
 
     it('should add Basic Subscription with tag', () => {
         var e = new evilduck.EventSubscription('event1');
-        e.subscribeBasic(scope, () => 1, 'tag1');
+        e.subscribeBasic(() => 1, 'tag1');
 
         var item = _.findWhere((<any>e)._tagSubs, { tagName : 'tag1' });
         expect(item).toBeDefined();
@@ -295,7 +309,7 @@ describe("Event Subscription", () => {
 
     it('should add Basic Subscription without tag', () => {
         var e = new evilduck.EventSubscription('event1');
-        e.subscribeBasic(scope, () => 1);
+        e.subscribeBasic(() => 1);
 
         var item = _.findWhere((<any>e)._tagSubs, { tagName: 'tag1' });
         expect(item).toBeFalsy();
@@ -341,5 +355,125 @@ describe("Event Subscription", () => {
         expect(item).toBeFalsy();
 
         expect((<any>e)._subs.length).toEqual(1);
+    });
+});
+
+describe('Wrapping multiple subscriptions', () => {
+    var $q: ng.IQService;
+    var $rootScope: ng.IRootScopeService;
+    var scope: ng.IScope;
+    var eventCnt: any;
+
+    var eventSubscription: evilduck.EventSubscription;
+
+    beforeEach(module('evilduck.eventDispatcher'));
+
+    beforeEach(inject((_$q_: ng.IQService, _$rootScope_: ng.IRootScopeService) => {
+        $q = _$q_;
+        $rootScope = _$rootScope_;
+        scope = $rootScope.$new();
+    }));
+
+    beforeEach(() => {
+
+        eventCnt = {
+            tag1: 0,
+            tag2: 0,
+            sub: 0
+        };
+
+        var tag1Func1 = () => {
+            eventCnt.tag1++;
+        };
+
+        var tag1Func2 = () => {
+            var deferred = $q.defer();
+            setTimeout(() => {
+                scope.$apply(() => {
+                    eventCnt.tag1++;
+                    deferred.resolve();
+                });
+            });
+
+            return deferred.promise;
+        };
+
+        var tag2Func1 = () => {
+            eventCnt.tag2++;
+        };
+
+        var tag2Func2 = () => {
+
+            var deferred = $q.defer();
+            setTimeout(() => {
+                scope.$apply(() => {
+                    eventCnt.tag2++;
+                    deferred.resolve();
+                });
+            });
+
+            return deferred.promise;
+        };
+
+        var subsFunc1 = () => {
+            eventCnt.sub++;
+        };
+
+        var subsFunc2 = () => {
+
+            var deferred = $q.defer();
+            setTimeout(() => {
+                scope.$apply(() => {
+                    eventCnt.sub++;
+                    deferred.resolve();
+                });
+            });
+
+            return deferred.promise;
+        };
+
+        eventSubscription = new evilduck.EventSubscription('event-1');
+        eventSubscription.subscribe(tag1Func1, 'tag1');
+        eventSubscription.subscribeGeneral(tag1Func2, 'tag1');
+        eventSubscription.subscribeBasic(tag1Func1, 'tag1');
+        eventSubscription.subscribePromise(tag1Func2, 'tag1');
+
+        eventSubscription.subscribe(tag2Func1, 'tag2');
+        eventSubscription.subscribeGeneral(tag2Func2, 'tag2');
+        eventSubscription.subscribeBasic(tag2Func1, 'tag2');
+        eventSubscription.subscribePromise(tag2Func2, 'tag2');
+
+        eventSubscription.subscribe(subsFunc1);
+        eventSubscription.subscribeGeneral(subsFunc2);
+        eventSubscription.subscribeBasic(subsFunc1);
+        eventSubscription.subscribePromise(subsFunc2);
+    });
+
+    it('should invoke all handlers with tag1 when wrapping tag1', (done) => {
+
+        scope.$apply(() => {
+            var promise = eventSubscription.wrap($q, 'tag1');
+            promise.then(() => {
+                expect(eventCnt.tag1).toEqual(4);
+                expect(eventCnt.tag2).toEqual(0);
+                expect(eventCnt.sub).toEqual(0);
+
+                done();
+            });
+        });
+    });
+
+    it('should invoke all handlers wrapping empty tag', (done) => {
+
+        scope.$apply(() => {
+            var promise = eventSubscription.wrap($q);
+            promise.then(() => {
+                expect(eventCnt.tag1).toEqual(4);
+                expect(eventCnt.tag2).toEqual(4);
+                expect(eventCnt.sub).toEqual(4);
+
+                done();
+            });
+        });
     });
 });
