@@ -6,9 +6,11 @@ module evilduck {
     export class EventDispatcher {
         
         private _innerDict: any;
+        private $q: ng.IQService;
 
-        constructor() {
+        constructor($q: ng.IQService) {
             this._innerDict = {};
+            this.$q = $q;
         }
 
 
@@ -26,7 +28,9 @@ module evilduck {
                 this._innerDict[event] = new EventSubscription(event);
             } 
 
-            return (<EventSubscription>this._innerDict[event]).subscribe(handler, tag);
+            var subsInfo = (<EventSubscription>this._innerDict[event]).subscribe(handler, tag);
+            subsInfo.Dispatcher = this;
+            return subsInfo;
         }
 
         public ngOn(scope: ng.IScope, event: string, handler: () => any, tag: string = null): void {
@@ -38,14 +42,27 @@ module evilduck {
             });
         }
 
-        public once(event: string, handler: () => any, tag: string = null) {
-            
+        public unsubscribe(guid: string, event: string, tag: string = null) {
+            if (this._innerDict[event]) {
+                (<EventSubscription>this._innerDict[event]).unsubscribe(guid, tag);
+                if ((<EventSubscription>this._innerDict[event]).count === 0) {
+                    delete this._innerDict[event];
+                }
+            }
         }
 
+        public dispatch(event: any, eventName: string, tag: string = null) : ng.IPromise<any> {
+
+            if (this._innerDict[eventName]) {
+                return (<EventSubscription>this._innerDict[eventName]).wrap(this.$q, tag);
+            }
+            return this.$q.when();
+        }
     }
 
     export interface ISubscription {
         wrap($q: ng.IQService): ng.IPromise<any>;
+        guid: string;
     }
 
     export interface IEventSubscription {
@@ -54,25 +71,31 @@ module evilduck {
 
     export class SubscriptionInfo {
         
-        constructor(event: string, arr: Array<ISubscription>, tag: string = null) {
+        constructor(guid: string, event: string, tag: string = null) {
             this.event = event;
-            this.idx = arr.length -1;
             this.tag = tag;
-            this.arr = arr;
             this.isDestroyed = false;
         }
 
         private event: string;
-        private idx: number;
         private tag: string;
-        private arr: Array<ISubscription>;
         private isDestroyed: boolean;
+        private dispatcher: EventDispatcher;
+        private guid: string;
 
         public destoy(): void {
             if (!this.isDestroyed) {
-                //this.arr.splice(this.idx, 1); // TODO: this needs to be refactored
+                this.dispatcher.unsubscribe(this.guid, this.event, this.tag);
                 this.isDestroyed = true;
             }
+        }
+
+        public get Dispatcher(): EventDispatcher {
+            return this.dispatcher;
+        }
+
+        public set Dispatcher(value: EventDispatcher) {
+            this.dispatcher = value;
         }
 
     }
@@ -97,32 +120,35 @@ module evilduck {
         }
 
         public subscribeBasic(func: () => void, tag: string = null): SubscriptionInfo {
+            var guid = this.createGuid();
             if (tag) {
-                this._tagSubs.push(TagSubscription.Basic(tag, func));
-                return new SubscriptionInfo(this._eventName, this._tagSubs);
+                this._tagSubs.push(TagSubscription.Basic(tag, func, guid));
+                return new SubscriptionInfo(guid, this._eventName, tag);
             } else {
-                this._subs.push(new BasicSubscription(func));
-                return new SubscriptionInfo(this._eventName, this._subs);
+                this._subs.push(new BasicSubscription(func, guid));
+                return new SubscriptionInfo(guid, this._eventName);
             }
         }
 
         public subscribePromise(func: () => ng.IPromise<any>, tag: string = null): SubscriptionInfo {
+            var guid = this.createGuid();
             if (tag) {
-                this._tagSubs.push(TagSubscription.Promise(tag, func));
-                return new SubscriptionInfo(this._eventName, this._tagSubs, tag);
+                this._tagSubs.push(TagSubscription.Promise(tag, func, guid));
+                return new SubscriptionInfo(guid, this._eventName, tag);
             } else {
-                this._subs.push(new PromiseSubscription(func));
-                return new SubscriptionInfo(this._eventName, this._subs);
+                this._subs.push(new PromiseSubscription(func, guid));
+                return new SubscriptionInfo(guid, this._eventName);
             }
         }
 
         public subscribeGeneral(func: () => any, tag: string = null): SubscriptionInfo {
+            var guid = this.createGuid();
             if (tag) {
-                this._tagSubs.push(TagSubscription.General(tag, func));
-                return new SubscriptionInfo(this._eventName, this._tagSubs, tag);
+                this._tagSubs.push(TagSubscription.General(tag, func, guid));
+                return new SubscriptionInfo(guid, this._eventName, tag);
             } else {
-                this._subs.push(new GeneralSubscription(func));
-                return new SubscriptionInfo(this._eventName, this._subs);
+                this._subs.push(new GeneralSubscription(func, guid));
+                return new SubscriptionInfo(guid, this._eventName);
             }
         }
 
@@ -151,31 +177,55 @@ module evilduck {
 
             return $q.all(promises);
         }
+
+        public unsubscribe(guid: string, tag: string = null) {
+            if (tag) {
+                var itemT = _.find(this._tagSubs, (s: TagSubscription) => s.tagName === tag && s.guid === guid);
+                var idxT = _.indexOf(this._tagSubs, itemT);
+                this._tagSubs.splice(idxT, 1);
+            } else {
+                var itemS = _.find(this._subs, (s: ISubscription) => s.guid === guid);
+                var idxS = _.indexOf(this._subs, itemS);
+                this._subs.splice(idxS, 1);
+            }
+        }
+
+        public get count(): number {
+            return this._subs.length + this._tagSubs.length;
+        }
+
+        private createGuid() {
+            return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
+                var r = Math.random() * 16 | 0, v = c === 'x' ? r : (r & 0x3 | 0x8);
+                return v.toString(16);
+            });
+        }
     }
 
     export class TagSubscription implements ISubscription {
         private _tagName: string;
         private _sub: ISubscription;
+        private _guid: string;
 
-        public static Basic(tagName: string, func: () => any): TagSubscription {
+        public static Basic(tagName: string, func: () => any, guid: string = null): TagSubscription {
             var s = new TagSubscription();
-            s._sub = new BasicSubscription(func);
+            s._sub = new BasicSubscription(func, guid);
             s._tagName = tagName;
 
             return s;
         }
 
-        public static Promise(tagName: string, func: () => ng.IPromise<any>): TagSubscription {
+        public static Promise(tagName: string, func: () => ng.IPromise<any>, guid: string = null): TagSubscription {
             var s = new TagSubscription();
-            s._sub = new PromiseSubscription(func);
+            s._sub = new PromiseSubscription(func, guid);
             s._tagName = tagName;
 
             return s;
         }
 
-        public static General(tagName: string, func: () => any): TagSubscription {
+        public static General(tagName: string, func: () => any, guid: string = null): TagSubscription {
             var s = new TagSubscription();
-            s._sub = new GeneralSubscription(func);
+            s._sub = new GeneralSubscription(func, guid);
             s._tagName = tagName;
 
             return s;
@@ -189,6 +239,10 @@ module evilduck {
             return this._sub;
         }
 
+        public get guid(): string {
+            return this._guid;
+        }
+
         public wrap($q: ng.IQService): ng.IPromise<any> {
             return this._sub.wrap($q);
         }
@@ -196,12 +250,14 @@ module evilduck {
 
     export class BasicSubscription implements ISubscription {
 
-        constructor(func: () => any) {
+        constructor(func: () => any, guid: string = null) {
             this._func = func;
+            this._guid = guid;
         }
 
         private _func: () => any;
         private _scope: ng.IScope;
+        private _guid: string;
 
         public wrap($q: ng.IQService): ng.IPromise<any> {
             var deferral = $q.defer();
@@ -215,18 +271,28 @@ module evilduck {
 
             return deferral.promise;
         }
+
+        public get guid() {
+            return this._guid;
+        }
     }
 
     export class PromiseSubscription implements ISubscription {
 
         private _func: () => ng.IPromise<any>;
+        private _guid: string;
 
-        constructor(func: () => ng.IPromise<any>) {
+        constructor(func: () => ng.IPromise<any>, guid: string = null) {
             this._func = func;
+            this._guid = guid;
         }
 
         public wrap($q: ng.IQService): ng.IPromise<any> {
             return this._func();
+        }
+
+        public get guid() {
+            return this._guid;
         }
 
     }
@@ -234,15 +300,20 @@ module evilduck {
     export class GeneralSubscription implements ISubscription {
 
         private _func: () => any;
+        private _guid: string;
 
-        constructor(func: () => any) {
+        constructor(func: () => any, guid: string = null) {
             this._func = func;
+            this._guid = guid;
         }
 
         public wrap($q: ng.IQService): ng.IPromise<any> {
             return $q.when(this._func());
         }
 
+        public get guid() {
+            return this._guid;
+        }
     }
 }
 

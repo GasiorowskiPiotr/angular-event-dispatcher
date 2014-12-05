@@ -477,3 +477,124 @@ describe('Wrapping multiple subscriptions', () => {
         });
     });
 });
+
+describe('Unsubscribing on EventDispatcher', () => {
+    var $q: ng.IQService;
+    var $rootScope: ng.IRootScopeService;
+    var scope: ng.IScope;
+    var eventCnt: any;
+
+    var subsInfos: any = {
+        s1: null,
+        s2: null,
+        s3: null,
+        s4: null,
+        s5: null,
+        s6: null,
+        s7: null,
+        s8: null,
+        s9: null,
+        s10: null
+    };
+
+    var eventDispatcher: evilduck.EventDispatcher;
+
+    beforeEach(module('evilduck.eventDispatcher'));
+
+    beforeEach(inject((_$q_: ng.IQService, _$rootScope_: ng.IRootScopeService) => {
+        $q = _$q_;
+        $rootScope = _$rootScope_;
+        scope = $rootScope.$new();
+    }));
+
+    beforeEach(() => {
+
+        eventCnt = {
+            tag1: 0,
+            tag2: 0,
+            sub: 0
+        };
+
+        var tag1Func1 = () => {
+            eventCnt.tag1++;
+        };
+
+        var tag1Func2 = () => {
+            var deferred = $q.defer();
+            setTimeout(() => {
+                scope.$apply(() => {
+                    eventCnt.tag1++;
+                    deferred.resolve();
+                });
+            });
+
+            return deferred.promise;
+        };
+
+        var tag2Func1 = () => {
+            eventCnt.tag2++;
+        };
+
+        var tag2Func2 = () => {
+
+            var deferred = $q.defer();
+            setTimeout(() => {
+                scope.$apply(() => {
+                    eventCnt.tag2++;
+                    deferred.resolve();
+                });
+            });
+
+            return deferred.promise;
+        };
+
+        var subsFunc1 = () => {
+            eventCnt.sub++;
+        };
+
+        var subsFunc2 = () => {
+
+            var deferred = $q.defer();
+            setTimeout(() => {
+                scope.$apply(() => {
+                    eventCnt.sub++;
+                    deferred.resolve();
+                });
+            });
+
+            return deferred.promise;
+        };
+
+        eventDispatcher = new evilduck.EventDispatcher();
+        subsInfos.s1 = eventDispatcher.on('ev1', tag1Func1, 'tag1');
+        subsInfos.s2 = eventDispatcher.on('ev1', tag1Func2, 'tag1');
+        subsInfos.s3 = eventDispatcher.on('ev1', tag2Func1, 'tag2');
+        subsInfos.s4 = eventDispatcher.on('ev1', tag2Func1, 'tag2');
+        subsInfos.s5 = eventDispatcher.on('ev1', subsFunc1);
+        subsInfos.s6 = eventDispatcher.on('ev1', subsFunc2);
+
+        subsInfos.s7 = eventDispatcher.on('ev2', tag1Func1, 'tag1');
+        subsInfos.s8 = eventDispatcher.on('ev2', tag1Func2, 'tag1');
+        subsInfos.s9 = eventDispatcher.on('ev2', subsFunc1);
+        subsInfos.s10 = eventDispatcher.on('ev2', subsFunc2);
+        
+    });
+
+    it('should unsubscribe with SubscriptionInfo (tagged)', () => {
+
+        (<evilduck.SubscriptionInfo>subsInfos.s1).destoy();
+
+        expect((<any>eventDispatcher)._innerDict['ev1'].count).toEqual(5);
+        expect((<any>eventDispatcher)._innerDict['ev1']._tagSubs.length).toEqual(3);
+        
+    });
+
+    it('should unsubscribe with SubscriptionInfo (not tagged)', () => {
+
+        (<evilduck.SubscriptionInfo>subsInfos.s5).destoy();
+
+        expect((<any>eventDispatcher)._innerDict['ev1'].count).toEqual(5);
+        expect((<any>eventDispatcher)._innerDict['ev1']._subs.length).toEqual(1);
+
+    });
+});
