@@ -1,7 +1,15 @@
 /// <reference path='../../bower_components/DefinitelyTyped/jasmine/jasmine.d.ts' />
 /// <reference path="../../bower_components/DefinitelyTyped/angularjs/angular.d.ts" />
 /// <reference path="../../bower_components/DefinitelyTyped/angularjs/angular-mocks.d.ts" />
-/// <reference path="../../src/subscriptions.ts"/>
+/// <reference path="../../bower_components/DefinitelyTyped/underscore/underscore.d.ts"/>
+
+/// <reference path="../../src/basicSubscription.ts"/>
+/// <reference path="../../src/eventDispatcher.ts"/>
+/// <reference path="../../src/eventSubscription.ts"/>
+/// <reference path="../../src/generalSubscription.ts"/>
+/// <reference path="../../src/main.ts"/>
+/// <reference path="../../src/promiseSubscription.ts"/>
+/// <reference path="../../src/tagSubscription.ts"/>
 
 describe("Promise Subscription Tests", () => {
 
@@ -565,7 +573,7 @@ describe('Unsubscribing on EventDispatcher', () => {
             return deferred.promise;
         };
 
-        eventDispatcher = new evilduck.EventDispatcher();
+        eventDispatcher = new evilduck.EventDispatcher($q);
         subsInfos.s1 = eventDispatcher.on('ev1', tag1Func1, 'tag1');
         subsInfos.s2 = eventDispatcher.on('ev1', tag1Func2, 'tag1');
         subsInfos.s3 = eventDispatcher.on('ev1', tag2Func1, 'tag2');
