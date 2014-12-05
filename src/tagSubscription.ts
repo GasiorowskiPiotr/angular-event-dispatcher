@@ -4,7 +4,7 @@
         private _sub: ISubscription;
         private _guid: string;
 
-        public static Basic(tagName: string, func: () => any, guid: string = null): TagSubscription {
+        public static Basic(tagName: string, func: (any) => any, guid: string = null): TagSubscription {
             var s = new TagSubscription();
             s._sub = new BasicSubscription(func, guid);
             s._tagName = tagName;
@@ -12,7 +12,7 @@
             return s;
         }
 
-        public static Promise(tagName: string, func: () => ng.IPromise<any>, guid: string = null): TagSubscription {
+        public static Promise(tagName: string, func: (any) => ng.IPromise<any>, guid: string = null): TagSubscription {
             var s = new TagSubscription();
             s._sub = new PromiseSubscription(func, guid);
             s._tagName = tagName;
@@ -20,7 +20,7 @@
             return s;
         }
 
-        public static General(tagName: string, func: () => any, guid: string = null): TagSubscription {
+        public static General(tagName: string, func: (any) => any, guid: string = null): TagSubscription {
             var s = new TagSubscription();
             s._sub = new GeneralSubscription(func, guid);
             s._tagName = tagName;
@@ -40,8 +40,8 @@
             return this._guid;
         }
 
-        public wrap($q: ng.IQService): ng.IPromise<any> {
-            return this._sub.wrap($q);
+        public wrap($q: ng.IQService, data: any): ng.IPromise<any> {
+            return this._sub.wrap($q, data);
         }
     }
 } 

@@ -47,7 +47,7 @@ describe("Promise Subscription Tests", () => {
 
     it('should wrap a Promise', (done) => {
         var ps = createSubscription();
-        var promise = ps.wrap($q);
+        var promise = ps.wrap($q, 1);
 
         scope.$apply(() => {
             promise.then((res) => {
@@ -84,7 +84,7 @@ describe("Basic Subscription Tests", () => {
 
     it('should wrap a Promise', (done) => {
         var ps = createSubscription();
-        var promise = ps.wrap($q);
+        var promise = ps.wrap($q, 1);
 
         scope.$apply(() => {
             promise.then((res) => {
@@ -92,8 +92,6 @@ describe("Basic Subscription Tests", () => {
                 done();
             });
         });
-
-        
     });
 });
 
@@ -137,7 +135,7 @@ describe("General Subscription Tests", () => {
 
     it('should wrap a Promise from General subscription with basic function', (done) => {
         var s = new evilduck.GeneralSubscription(basicFunction);
-        var promise = s.wrap($q);
+        var promise = s.wrap($q, 1);
 
         scope.$apply(() => {
             promise.then((res) => {
@@ -149,7 +147,7 @@ describe("General Subscription Tests", () => {
 
     it('should wrap a Promise from General subscription with promise function', (done) => {
         var s = new evilduck.GeneralSubscription(promiseFunction);
-        var promise = s.wrap($q);
+        var promise = s.wrap($q, 1);
 
         scope.$apply(() => {
             promise.then((res) => {
@@ -218,7 +216,7 @@ describe("Tagged Subscription Tests", () => {
 
     it('should wrap a Promise from Basic Subscription', (done) => {
         var s = evilduck.TagSubscription.Basic('basic', basicFunction);
-        var promise = s.wrap($q);
+        var promise = s.wrap($q, 1);
 
         scope.$apply(() => {
             promise.then((res) => {
@@ -231,7 +229,7 @@ describe("Tagged Subscription Tests", () => {
 
     it('should wrap a Promise from Promise Subscription', (done) => {
         var s = evilduck.TagSubscription.Promise('promise', promiseFunction);
-        var promise = s.wrap($q);
+        var promise = s.wrap($q, 1);
 
         scope.$apply(() => {
             promise.then((res) => {
@@ -243,7 +241,7 @@ describe("Tagged Subscription Tests", () => {
 
     it('should wrap a Promise from General Subscription built with promise', (done) => {
         var s = evilduck.TagSubscription.General('general-1', promiseFunction);
-        var promise = s.wrap($q);
+        var promise = s.wrap($q, 1);
 
         scope.$apply(() => {
             promise.then((res) => {
@@ -255,7 +253,7 @@ describe("Tagged Subscription Tests", () => {
 
     it('should wrap a Promise from General Subscription built with basic function', (done) => {
         var s = evilduck.TagSubscription.General('general-2', basicFunction);
-        var promise = s.wrap($q);
+        var promise = s.wrap($q, 1);
 
         scope.$apply(() => {
             promise.then((res) => {
@@ -460,7 +458,7 @@ describe('Wrapping multiple subscriptions', () => {
     it('should invoke all handlers with tag1 when wrapping tag1', (done) => {
 
         scope.$apply(() => {
-            var promise = eventSubscription.wrap($q, 'tag1');
+            var promise = eventSubscription.wrap($q, 1, 'tag1');
             promise.then(() => {
                 expect(eventCnt.tag1).toEqual(4);
                 expect(eventCnt.tag2).toEqual(0);
@@ -474,7 +472,7 @@ describe('Wrapping multiple subscriptions', () => {
     it('should invoke all handlers wrapping empty tag', (done) => {
 
         scope.$apply(() => {
-            var promise = eventSubscription.wrap($q);
+            var promise = eventSubscription.wrap($q, 1);
             promise.then(() => {
                 expect(eventCnt.tag1).toEqual(4);
                 expect(eventCnt.tag2).toEqual(4);

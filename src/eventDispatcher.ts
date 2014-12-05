@@ -50,19 +50,19 @@
         public dispatch(event: any, eventName: string, tag: string = null): ng.IPromise<any> {
 
             if (this._innerDict[eventName]) {
-                return (<EventSubscription>this._innerDict[eventName]).wrap(this.$q, tag);
+                return (<EventSubscription>this._innerDict[eventName]).wrap(this.$q, event, tag);
             }
             return this.$q.when();
         }
     }
 
     export interface ISubscription {
-        wrap($q: ng.IQService): ng.IPromise<any>;
+        wrap($q: ng.IQService, data: any): ng.IPromise<any>;
         guid: string;
     }
 
     export interface IEventSubscription {
-        wrap($q: ng.IQService, tagName: string): ng.IPromise<any>;
+        wrap($q: ng.IQService, data: any, tagName: string): ng.IPromise<any>;
     }
 
     export class SubscriptionInfo {

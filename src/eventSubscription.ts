@@ -51,7 +51,7 @@
             }
         }
 
-        public wrap($q: ng.IQService, tagName: string = null): ng.IPromise<any> {
+        public wrap($q: ng.IQService, data: any, tagName: string = null): ng.IPromise<any> {
 
             var subs: ISubscription[];
             var tagSubs: TagSubscription[];
@@ -71,7 +71,7 @@
             }
 
             var promises = _.map(toExec, (sub: ISubscription) => {
-                return sub.wrap($q);
+                return sub.wrap($q, data);
             });
 
             return $q.all(promises);
