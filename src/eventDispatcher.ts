@@ -1,5 +1,13 @@
 ﻿module evilduck {
-    export class EventDispatcher {
+
+    export interface IEventDispatcher {
+        on(event: string, handler: (any) => any, tag: string): SubscriptionInfo;
+        ngOn(scope: ng.IScope, event: string, handler: (any) => any, tag: string): void;
+        unsubscribe(guid: string, event: string, tag: string);
+        dispatch(data: any, eventName: string, tag: string): ng.IPromise<any>;
+    }
+
+    export class EventDispatcher implements IEventDispatcher {
 
         private _innerDict: any;
         private $q: ng.IQService;
@@ -10,7 +18,7 @@
         }
 
 
-        public on(event: string, handler: () => any, tag: string = null): SubscriptionInfo {
+        public on(event: string, handler: (any) => any, tag: string = null): SubscriptionInfo {
 
             if (!event) {
                 throw new Error('Event name must not be empty');
@@ -29,7 +37,7 @@
             return subsInfo;
         }
 
-        public ngOn(scope: ng.IScope, event: string, handler: () => any, tag: string = null): void {
+        public ngOn(scope: ng.IScope, event: string, handler: (any) => any, tag: string = null): void {
 
             var subsInfo = this.on(event, handler, tag);
 
@@ -47,10 +55,10 @@
             }
         }
 
-        public dispatch(event: any, eventName: string, tag: string = null): ng.IPromise<any> {
+        public dispatch(data: any, eventName: string, tag: string = null): ng.IPromise<any> {
 
             if (this._innerDict[eventName]) {
-                return (<EventSubscription>this._innerDict[eventName]).wrap(this.$q, event, tag);
+                return (<EventSubscription>this._innerDict[eventName]).wrap(this.$q, data, tag);
             }
             return this.$q.when();
         }

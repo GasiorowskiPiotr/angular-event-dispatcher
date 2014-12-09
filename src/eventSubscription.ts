@@ -14,11 +14,11 @@
             return this._eventName;
         }
 
-        public subscribe(func: () => any, tag: string = null): SubscriptionInfo {
+        public subscribe(func: (any) => any, tag: string = null): SubscriptionInfo {
             return this.subscribeGeneral(func, tag);
         }
 
-        public subscribeBasic(func: () => void, tag: string = null): SubscriptionInfo {
+        public subscribeBasic(func: (any) => void, tag: string = null): SubscriptionInfo {
             var guid = this.createGuid();
             if (tag) {
                 this._tagSubs.push(TagSubscription.Basic(tag, func, guid));
@@ -29,7 +29,7 @@
             }
         }
 
-        public subscribePromise(func: () => ng.IPromise<any>, tag: string = null): SubscriptionInfo {
+        public subscribePromise(func: (any) => ng.IPromise<any>, tag: string = null): SubscriptionInfo {
             var guid = this.createGuid();
             if (tag) {
                 this._tagSubs.push(TagSubscription.Promise(tag, func, guid));
@@ -40,7 +40,7 @@
             }
         }
 
-        public subscribeGeneral(func: () => any, tag: string = null): SubscriptionInfo {
+        public subscribeGeneral(func: (any) => any, tag: string = null): SubscriptionInfo {
             var guid = this.createGuid();
             if (tag) {
                 this._tagSubs.push(TagSubscription.General(tag, func, guid));
