@@ -1,6 +1,7 @@
 {
   "name": "angular-event-dispatcher",
   "version": "0.1.1",
+  "main": "dist/js/angular-event-distpacher.min.js",
   "authors": [
     "Piotr Gąsiorowski <gasiorowski.piotr@gmail.com>"
   ],
