@@ -1,6 +1,6 @@
 {
   "name": "angular-event-distpacher",
-  "version": "0.0.1",
+  "version": "0.1.1",
   "description": "Angular Event Dispatcher",
   "main": "index.js",
   "scripts": {
@@ -16,7 +16,7 @@
     "dispatcher"
   ],
   "author": "Piotr Gasiorowski <gasiorowski.piotr@gmail.com>",
-  "license": "ISC",
+  "license": "MIT",
   "bugs": {
     "url": "https://github.com/GasiorowskiPiotr/angular-event-dispatcher/issues"
   },

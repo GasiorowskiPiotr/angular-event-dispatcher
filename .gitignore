@@ -5,7 +5,6 @@ AngularEventDispatcher.v12.suo
 AngularEventDispatcher.sln.DotSettings.user
 doc/*
 obj/*
-dist/*
 coverage/*
 bin/*
 src/*.js*
