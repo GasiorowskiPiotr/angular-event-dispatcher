@@ -39,6 +39,7 @@
   </ItemGroup>
   <ItemGroup />
   <ItemGroup>
+    <TypeScriptCompile Include="src\ngEventDispatcher.ts" />
     <TypeScriptCompile Include="src\z_main.ts" />
     <TypeScriptCompile Include="src\collWrapper.ts" />
     <TypeScriptCompile Include="src\qWrapper.ts" />
