@@ -3,12 +3,13 @@
 /// <reference path="../../bower_components/DefinitelyTyped/angularjs/angular-mocks.d.ts" />
 /// <reference path="../../bower_components/DefinitelyTyped/underscore/underscore.d.ts"/>
 
-/// <reference path="../../src/eventDispatcher.ts"/>
-/// <reference path="../../src/eventSubscription.ts"/>
-/// <reference path="../../src/innerSubscription.ts"/>
-/// <reference path="../../src/main.ts"/>
-/// <reference path="../../src/tagSubscription.ts"/>
+/// <reference path="../../bower_components/base-event-dispatcher/dist/dts/eventDispatcher.d.ts"/>
+/// <reference path="../../bower_components/base-event-dispatcher/dist/dts/eventSubscription.d.ts"/>
+/// <reference path="../../bower_components/base-event-dispatcher/dist/dts/innerSubscription.d.ts"/>
+/// <reference path="../../bower_components/base-event-dispatcher/dist/dts/tagSubscription.d.ts"/>
 
+/// <reference path="../../src/qWrapper.ts"/>
+/// <reference path="../../src/collWrapper.ts"/>
 
 describe("Inner Subscription Tests", () => {
     var $q: ng.IQService;
@@ -143,6 +144,8 @@ describe("Event Subscription", () => {
     var $q: ng.IQService;
     var $rootScope: ng.IRootScopeService;
     var scope: ng.IScope;
+    var collWrapper: evilduck.underscore.Underscore;
+    var qWrapper: evilduck.angular.QService;
 
     beforeEach(module('evilduck.eventDispatcher'));
 
@@ -150,16 +153,18 @@ describe("Event Subscription", () => {
         $q = _$q_;
         $rootScope = _$rootScope_;
         scope = $rootScope.$new();
+        collWrapper = new evilduck.underscore.Underscore();
+        qWrapper = new evilduck.angular.QService($q, collWrapper);
     }));
 
     it('should create a Event Subscription', () => {
-        var e = new evilduck.EventSubscription('event1');
+        var e = new evilduck.EventSubscription('event1', qWrapper, collWrapper);
         expect(e).toBeDefined();
         expect(e.eventName).toEqual('event1');
     });
 
     it('should add subscription with tag', () => {
-        var e = new evilduck.EventSubscription('event1');
+        var e = new evilduck.EventSubscription('event1', qWrapper, collWrapper);
         e.subscribe(() => 1, 'tag1');
 
         var item = _.findWhere((<any>e)._tagSubs, { tagName: 'tag1' });
@@ -169,7 +174,7 @@ describe("Event Subscription", () => {
     });
 
     it('should add subscription without tag', () => {
-        var e = new evilduck.EventSubscription('event1');
+        var e = new evilduck.EventSubscription('event1', qWrapper, collWrapper);
         e.subscribe(() => 1);
 
         var item = _.findWhere((<any>e)._tagSubs, { tagName: 'tag1' });
@@ -185,6 +190,9 @@ describe('Wrapping multiple subscriptions', () => {
     var scope: ng.IScope;
     var eventCnt: any;
 
+    var collWrapper: evilduck.underscore.Underscore;
+    var qWrapper: evilduck.angular.QService;
+
     var eventSubscription: evilduck.EventSubscription;
 
     beforeEach(module('evilduck.eventDispatcher'));
@@ -193,6 +201,8 @@ describe('Wrapping multiple subscriptions', () => {
         $q = _$q_;
         $rootScope = _$rootScope_;
         scope = $rootScope.$new();
+        collWrapper = new evilduck.underscore.Underscore();
+        qWrapper = new evilduck.angular.QService($q, collWrapper);
     }));
 
     beforeEach(() => {
@@ -253,7 +263,7 @@ describe('Wrapping multiple subscriptions', () => {
             return deferred.promise;
         };
 
-        eventSubscription = new evilduck.EventSubscription('event-1');
+        eventSubscription = new evilduck.EventSubscription('event-1', qWrapper, collWrapper);
         eventSubscription.subscribe(tag1Func1, 'tag1');
         eventSubscription.subscribe(tag1Func2, 'tag1');
         eventSubscription.subscribe(tag2Func1, 'tag2');
@@ -265,7 +275,7 @@ describe('Wrapping multiple subscriptions', () => {
     it('should invoke all handlers with tag1 when wrapping tag1', (done) => {
 
         scope.$apply(() => {
-            var promise = eventSubscription.wrap($q, 1, 'tag1');
+            var promise = eventSubscription.wrap(1, 'tag1');
             promise.then(() => {
                 expect(eventCnt.tag1).toEqual(2);
                 expect(eventCnt.tag2).toEqual(0);
@@ -279,7 +289,7 @@ describe('Wrapping multiple subscriptions', () => {
     it('should invoke all handlers wrapping empty tag', (done) => {
 
         scope.$apply(() => {
-            var promise = eventSubscription.wrap($q, 1);
+            var promise = eventSubscription.wrap(1);
             promise.then(() => {
                 expect(eventCnt.tag1).toEqual(2);
                 expect(eventCnt.tag2).toEqual(2);
@@ -296,6 +306,9 @@ describe('Unsubscribing on EventDispatcher', () => {
     var $rootScope: ng.IRootScopeService;
     var scope: ng.IScope;
     var eventCnt: any;
+
+    var _collWrapper: evilduck.underscore.Underscore;
+    var _qWrapper: evilduck.angular.QService;
 
     var subsInfos: any = {
         s1: null,
@@ -318,6 +331,8 @@ describe('Unsubscribing on EventDispatcher', () => {
         $q = _$q_;
         $rootScope = _$rootScope_;
         scope = $rootScope.$new();
+        _collWrapper = new evilduck.underscore.Underscore();
+        _qWrapper = new evilduck.angular.QService($q, _collWrapper);
     }));
 
     beforeEach(() => {
@@ -378,7 +393,7 @@ describe('Unsubscribing on EventDispatcher', () => {
             return deferred.promise;
         };
 
-        eventDispatcher = new evilduck.EventDispatcher($q);
+        eventDispatcher = new evilduck.EventDispatcher(_qWrapper, _collWrapper);
         subsInfos.s1 = eventDispatcher.on('ev1', tag1Func1, 'tag1');
         subsInfos.s2 = eventDispatcher.on('ev1', tag1Func2, 'tag1');
         subsInfos.s3 = eventDispatcher.on('ev1', tag2Func1, 'tag2');

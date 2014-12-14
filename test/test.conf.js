@@ -16,6 +16,7 @@ module.exports = function(config) {
       'bower_components/angularjs/angular.js',
       'bower_components/angular-mocks/angular-mocks.js',
       'bower_components/underscore/underscore.js',
+      'bower_components/base-event-dispatcher/dist/js/src/**/*.js',
       'test/**/*.spec.js',
       'dist/js/src/*.js'
     ],

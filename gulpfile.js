@@ -24,7 +24,7 @@ var onError = function(err) {
 };
 
 gulp.task('clean', function(done) {
-	del(['dist', 'doc', 'coverage'], done);
+	del(['dist', 'coverage'], done);
 });
 
 gulp.task('lint', function() {
@@ -32,17 +32,6 @@ gulp.task('lint', function() {
 		.src(['src/*.ts'])
 		.pipe(tslint())
 		.pipe(tslint.report('verbose'));
-});
-
-gulp.task('doc', function() {
-	return gulp
-		.src(['src/*.ts'])
-		.pipe(typedoc({
-			module: 'commonjs',
-			out: './doc',
-			name: 'Angular Event Dispatcher',
-			target: 'es5'
-		}));
 });
 
 gulp.task('compile', function() {
@@ -108,7 +97,7 @@ gulp.task('info', function() {
 });
 
 gulp.task('default', function(done) {
-	runSequence('clean', ['lint', 'doc'], ['compile', 'compile-test'], 'minify', 'karma', 'info', done);
+	runSequence('clean', 'lint', ['compile', 'compile-test'], 'minify', 'karma', 'info', done);
 });
 
 gulp.task('fast', function(done) {

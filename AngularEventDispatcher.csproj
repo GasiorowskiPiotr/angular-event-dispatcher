@@ -18,32 +18,31 @@
     <TypeScriptToolsVersion>1.0</TypeScriptToolsVersion>
   </PropertyGroup>
   <ItemGroup>
-    <Content Include="app.css" />
     <Content Include="gulpfile.js" />
     <Content Include="index.html" />
+    <Content Include="test\src\subscription.spec.js" />
     <Content Include="test\test.conf.js" />
     <Content Include="web.config" />
-  </ItemGroup>
-  <ItemGroup>
-    <TypeScriptCompile Include="app.ts" />
-    <TypeScriptCompile Include="src\eventDispatcher.ts" />
-    <TypeScriptCompile Include="src\eventSubscription.ts" />
-    <TypeScriptCompile Include="src\innerSubscription.ts" />
-    <TypeScriptCompile Include="src\main.ts" />
-    <TypeScriptCompile Include="src\tagSubscription.ts" />
-    <TypeScriptCompile Include="test\src\subscription.spec.ts" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="bower.json" />
     <Content Include="LICENSE" />
     <Content Include="package.json" />
     <Content Include="README.md" />
+    <Content Include="test\src\subscription.spec.js.map" />
     <None Include="web.Debug.config">
       <DependentUpon>web.config</DependentUpon>
     </None>
     <None Include="web.Release.config">
       <DependentUpon>web.config</DependentUpon>
     </None>
+  </ItemGroup>
+  <ItemGroup />
+  <ItemGroup>
+    <TypeScriptCompile Include="src\z_main.ts" />
+    <TypeScriptCompile Include="src\collWrapper.ts" />
+    <TypeScriptCompile Include="src\qWrapper.ts" />
+    <TypeScriptCompile Include="test\src\subscription.spec.ts" />
   </ItemGroup>
   <PropertyGroup>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">12.0</VisualStudioVersion>
