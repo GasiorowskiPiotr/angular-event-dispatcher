@@ -17,30 +17,6 @@ var evilduck;
             if (tag === void 0) { tag = null; }
             return this.subscribeGeneral(func, tag);
         };
-        EventSubscription.prototype.subscribeBasic = function (func, tag) {
-            if (tag === void 0) { tag = null; }
-            var guid = this.createGuid();
-            if (tag) {
-                this._tagSubs.push(evilduck.TagSubscription.Basic(tag, func, guid));
-                return new evilduck.SubscriptionInfo(guid, this._eventName, tag);
-            }
-            else {
-                this._subs.push(new evilduck.BasicSubscription(func, guid));
-                return new evilduck.SubscriptionInfo(guid, this._eventName);
-            }
-        };
-        EventSubscription.prototype.subscribePromise = function (func, tag) {
-            if (tag === void 0) { tag = null; }
-            var guid = this.createGuid();
-            if (tag) {
-                this._tagSubs.push(evilduck.TagSubscription.Promise(tag, func, guid));
-                return new evilduck.SubscriptionInfo(guid, this._eventName, tag);
-            }
-            else {
-                this._subs.push(new evilduck.PromiseSubscription(func, guid));
-                return new evilduck.SubscriptionInfo(guid, this._eventName);
-            }
-        };
         EventSubscription.prototype.subscribeGeneral = function (func, tag) {
             if (tag === void 0) { tag = null; }
             var guid = this.createGuid();
@@ -49,7 +25,7 @@ var evilduck;
                 return new evilduck.SubscriptionInfo(guid, this._eventName, tag);
             }
             else {
-                this._subs.push(new evilduck.GeneralSubscription(func, guid));
+                this._subs.push(new evilduck.InnerSubscription(func, guid));
                 return new evilduck.SubscriptionInfo(guid, this._eventName);
             }
         };

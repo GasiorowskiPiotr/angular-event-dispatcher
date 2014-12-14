@@ -18,35 +18,14 @@
             return this.subscribeGeneral(func, tag);
         }
 
-        public subscribeBasic(func: (any) => void, tag: string = null): SubscriptionInfo {
-            var guid = this.createGuid();
-            if (tag) {
-                this._tagSubs.push(TagSubscription.Basic(tag, func, guid));
-                return new SubscriptionInfo(guid, this._eventName, tag);
-            } else {
-                this._subs.push(new BasicSubscription(func, guid));
-                return new SubscriptionInfo(guid, this._eventName);
-            }
-        }
-
-        public subscribePromise(func: (any) => ng.IPromise<any>, tag: string = null): SubscriptionInfo {
-            var guid = this.createGuid();
-            if (tag) {
-                this._tagSubs.push(TagSubscription.Promise(tag, func, guid));
-                return new SubscriptionInfo(guid, this._eventName, tag);
-            } else {
-                this._subs.push(new PromiseSubscription(func, guid));
-                return new SubscriptionInfo(guid, this._eventName);
-            }
-        }
-
-        public subscribeGeneral(func: (any) => any, tag: string = null): SubscriptionInfo {
+       
+        private subscribeGeneral(func: (any) => any, tag: string = null): SubscriptionInfo {
             var guid = this.createGuid();
             if (tag) {
                 this._tagSubs.push(TagSubscription.General(tag, func, guid));
                 return new SubscriptionInfo(guid, this._eventName, tag);
             } else {
-                this._subs.push(new GeneralSubscription(func, guid));
+                this._subs.push(new InnerSubscription(func, guid));
                 return new SubscriptionInfo(guid, this._eventName);
             }
         }

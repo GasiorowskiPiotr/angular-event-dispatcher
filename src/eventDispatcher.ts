@@ -42,7 +42,7 @@
             var subsInfo = this.on(event, handler, tag);
 
             scope.$on('destroy', () => {
-                subsInfo.destoy();
+                subsInfo.destroy();
             });
         }
 
@@ -87,7 +87,7 @@
         private dispatcher: EventDispatcher;
         private guid: string;
 
-        public destoy(): void {
+        public destroy(): void {
             if (!this.isDestroyed) {
                 this.dispatcher.unsubscribe(this.guid, this.event, this.tag);
                 this.isDestroyed = true;

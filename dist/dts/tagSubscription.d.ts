@@ -3,8 +3,6 @@ declare module evilduck {
         private _tagName;
         private _sub;
         private _guid;
-        static Basic(tagName: string, func: (any: any) => any, guid?: string): TagSubscription;
-        static Promise(tagName: string, func: (any: any) => ng.IPromise<any>, guid?: string): TagSubscription;
         static General(tagName: string, func: (any: any) => any, guid?: string): TagSubscription;
         tagName: string;
         subscription: ISubscription;

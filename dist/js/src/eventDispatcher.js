@@ -24,7 +24,7 @@ var evilduck;
             if (tag === void 0) { tag = null; }
             var subsInfo = this.on(event, handler, tag);
             scope.$on('destroy', function () {
-                subsInfo.destoy();
+                subsInfo.destroy();
             });
         };
         EventDispatcher.prototype.unsubscribe = function (guid, event, tag) {
@@ -53,7 +53,7 @@ var evilduck;
             this.tag = tag;
             this.isDestroyed = false;
         }
-        SubscriptionInfo.prototype.destoy = function () {
+        SubscriptionInfo.prototype.destroy = function () {
             if (!this.isDestroyed) {
                 this.dispatcher.unsubscribe(this.guid, this.event, this.tag);
                 this.isDestroyed = true;

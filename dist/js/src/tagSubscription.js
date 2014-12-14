@@ -3,24 +3,10 @@ var evilduck;
     var TagSubscription = (function () {
         function TagSubscription() {
         }
-        TagSubscription.Basic = function (tagName, func, guid) {
-            if (guid === void 0) { guid = null; }
-            var s = new TagSubscription();
-            s._sub = new evilduck.BasicSubscription(func, guid);
-            s._tagName = tagName;
-            return s;
-        };
-        TagSubscription.Promise = function (tagName, func, guid) {
-            if (guid === void 0) { guid = null; }
-            var s = new TagSubscription();
-            s._sub = new evilduck.PromiseSubscription(func, guid);
-            s._tagName = tagName;
-            return s;
-        };
         TagSubscription.General = function (tagName, func, guid) {
             if (guid === void 0) { guid = null; }
             var s = new TagSubscription();
-            s._sub = new evilduck.GeneralSubscription(func, guid);
+            s._sub = new evilduck.InnerSubscription(func, guid);
             s._tagName = tagName;
             return s;
         };

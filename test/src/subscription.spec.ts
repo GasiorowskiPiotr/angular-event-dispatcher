@@ -3,99 +3,14 @@
 /// <reference path="../../bower_components/DefinitelyTyped/angularjs/angular-mocks.d.ts" />
 /// <reference path="../../bower_components/DefinitelyTyped/underscore/underscore.d.ts"/>
 
-/// <reference path="../../src/basicSubscription.ts"/>
 /// <reference path="../../src/eventDispatcher.ts"/>
 /// <reference path="../../src/eventSubscription.ts"/>
-/// <reference path="../../src/generalSubscription.ts"/>
+/// <reference path="../../src/innerSubscription.ts"/>
 /// <reference path="../../src/main.ts"/>
-/// <reference path="../../src/promiseSubscription.ts"/>
 /// <reference path="../../src/tagSubscription.ts"/>
 
-describe("Promise Subscription Tests", () => {
 
-    var $q: ng.IQService;
-    var $rootScope: ng.IRootScopeService;
-    var scope: ng.IScope;
-
-    beforeEach(module('evilduck.eventDispatcher'));
-
-    beforeEach(inject((_$q_: ng.IQService, _$rootScope_: ng.IRootScopeService) => {
-        $q = _$q_;
-        $rootScope = _$rootScope_;
-        scope = $rootScope.$new();
-    }));
-
-    var createSubscription = () => {
-        return new evilduck.PromiseSubscription(() => {
-            var deferred = $q.defer();
-
-            setTimeout(() => {
-                $rootScope.$apply(() => {
-                    deferred.resolve(1);
-                });
-            }, 1);
-
-            return deferred.promise;
-        });
-    };
-
-    it('should create a Promise Subscription', () => {
-        var s = createSubscription();
-
-        expect(s).toBeDefined();
-    });
-
-    it('should wrap a Promise', (done) => {
-        var ps = createSubscription();
-        var promise = ps.wrap($q, 1);
-
-        scope.$apply(() => {
-            promise.then((res) => {
-                expect(res).toEqual(1);
-                done();
-            });
-        });
-        
-    });
-});
-
-describe("Basic Subscription Tests", () => {
-    var $q: ng.IQService;
-    var $rootScope: ng.IRootScopeService;
-    var scope: ng.IScope;
-
-    beforeEach(module('evilduck.eventDispatcher'));
-
-    beforeEach(inject((_$q_: ng.IQService, _$rootScope_: ng.IRootScopeService) => {
-        $q = _$q_;
-        $rootScope = _$rootScope_;
-        scope = $rootScope.$new();
-    }));
-
-    var createSubscription = () => {
-        return new evilduck.BasicSubscription(() => 1);
-    };
-
-    it('should create a Promise Subscription', () => {
-        var s = createSubscription();
-
-        expect(s).toBeDefined();
-    });
-
-    it('should wrap a Promise', (done) => {
-        var ps = createSubscription();
-        var promise = ps.wrap($q, 1);
-
-        scope.$apply(() => {
-            promise.then((res) => {
-                expect(res).toEqual(1);
-                done();
-            });
-        });
-    });
-});
-
-describe("General Subscription Tests", () => {
+describe("Inner Subscription Tests", () => {
     var $q: ng.IQService;
     var $rootScope: ng.IRootScopeService;
     var scope: ng.IScope;
@@ -122,19 +37,19 @@ describe("General Subscription Tests", () => {
         return deferred.promise;
     };
 
-    it('should create a General subscription from basic function', () => {
-        var s = new evilduck.GeneralSubscription(basicFunction);
+    it('should create a inner subscription from basic function', () => {
+        var s = new evilduck.InnerSubscription(basicFunction);
         expect(s).toBeDefined();
     });
 
-    it('should create a General Subscription from promise function', () => {
-        var s = new evilduck.GeneralSubscription(promiseFunction);
+    it('should create a inner subscription from promise function', () => {
+        var s = new evilduck.InnerSubscription(promiseFunction);
         expect(s).toBeDefined();
     });
 
 
-    it('should wrap a Promise from General subscription with basic function', (done) => {
-        var s = new evilduck.GeneralSubscription(basicFunction);
+    it('should wrap a promise from inner subscription with basic function', (done) => {
+        var s = new evilduck.InnerSubscription(basicFunction);
         var promise = s.wrap($q, 1);
 
         scope.$apply(() => {
@@ -145,8 +60,8 @@ describe("General Subscription Tests", () => {
         });
     });
 
-    it('should wrap a Promise from General subscription with promise function', (done) => {
-        var s = new evilduck.GeneralSubscription(promiseFunction);
+    it('should wrap a promise from inner subscription with promise function', (done) => {
+        var s = new evilduck.InnerSubscription(promiseFunction);
         var promise = s.wrap($q, 1);
 
         scope.$apply(() => {
@@ -186,21 +101,7 @@ describe("Tagged Subscription Tests", () => {
         return deferred.promise;
     };
 
-    it('should create a Tagged Subscription with basic function', () => {
-        var s = evilduck.TagSubscription.Basic('basic', basicFunction);
-        expect(s).toBeDefined();
-        expect(s.tagName).toEqual('basic');
-        expect(s.subscription).toBeDefined();
-    });
-
-    it('should create a Tagged Subscription with promise function', () => {
-        var s = evilduck.TagSubscription.Promise('promise', promiseFunction);
-        expect(s).toBeDefined();
-        expect(s.tagName).toEqual('promise');
-        expect(s.subscription).toBeDefined();
-    });
-
-    it('should create a Tagged Subscription with general wrapped promise', () => {
+    it('should create a Tagged Subscription with inner wrapped promise', () => {
         var s1 = evilduck.TagSubscription.General('general-1', basicFunction);
         var s2 = evilduck.TagSubscription.General('general-2', promiseFunction);
 
@@ -213,33 +114,7 @@ describe("Tagged Subscription Tests", () => {
         expect(s2.subscription).toBeDefined();
     });
 
-
-    it('should wrap a Promise from Basic Subscription', (done) => {
-        var s = evilduck.TagSubscription.Basic('basic', basicFunction);
-        var promise = s.wrap($q, 1);
-
-        scope.$apply(() => {
-            promise.then((res) => {
-                expect(res).toEqual(1);
-                done();
-            });
-        });
-        
-    });
-
-    it('should wrap a Promise from Promise Subscription', (done) => {
-        var s = evilduck.TagSubscription.Promise('promise', promiseFunction);
-        var promise = s.wrap($q, 1);
-
-        scope.$apply(() => {
-            promise.then((res) => {
-                expect(res).toEqual(1);
-                done();
-            });
-        });
-    });
-
-    it('should wrap a Promise from General Subscription built with promise', (done) => {
+    it('should wrap a promise from inner subscription built with promise', (done) => {
         var s = evilduck.TagSubscription.General('general-1', promiseFunction);
         var promise = s.wrap($q, 1);
 
@@ -251,7 +126,7 @@ describe("Tagged Subscription Tests", () => {
         });
     });
 
-    it('should wrap a Promise from General Subscription built with basic function', (done) => {
+    it('should wrap a promise from inner subscription built with basic function', (done) => {
         var s = evilduck.TagSubscription.General('general-2', basicFunction);
         var promise = s.wrap($q, 1);
 
@@ -283,7 +158,7 @@ describe("Event Subscription", () => {
         expect(e.eventName).toEqual('event1');
     });
 
-    it('should add general (default) Subscription with tag', () => {
+    it('should add subscription with tag', () => {
         var e = new evilduck.EventSubscription('event1');
         e.subscribe(() => 1, 'tag1');
 
@@ -293,69 +168,9 @@ describe("Event Subscription", () => {
         expect((<any>e)._subs.length).toEqual(0);
     });
 
-    it('should add general (default) Subscription without tag', () => {
+    it('should add subscription without tag', () => {
         var e = new evilduck.EventSubscription('event1');
         e.subscribe(() => 1);
-
-        var item = _.findWhere((<any>e)._tagSubs, { tagName: 'tag1' });
-        expect(item).toBeFalsy();
-
-        expect((<any>e)._subs.length).toEqual(1);
-    });
-
-    it('should add Basic Subscription with tag', () => {
-        var e = new evilduck.EventSubscription('event1');
-        e.subscribeBasic(() => 1, 'tag1');
-
-        var item = _.findWhere((<any>e)._tagSubs, { tagName : 'tag1' });
-        expect(item).toBeDefined();
-
-        expect((<any>e)._subs.length).toEqual(0);
-    });
-
-    it('should add Basic Subscription without tag', () => {
-        var e = new evilduck.EventSubscription('event1');
-        e.subscribeBasic(() => 1);
-
-        var item = _.findWhere((<any>e)._tagSubs, { tagName: 'tag1' });
-        expect(item).toBeFalsy();
-
-        expect((<any>e)._subs.length).toEqual(1);
-    });
-
-    it('should add Promise Subscription with tag', () => {
-        var e = new evilduck.EventSubscription('event1');
-        e.subscribePromise(() => {
-            var deferred = $q.defer();
-
-            setTimeout(() => {
-                $rootScope.$apply(() => {
-                    deferred.resolve(1);
-                });
-            }, 1);
-
-            return deferred.promise;
-        }, 'tag1');
-
-        var item = _.findWhere((<any>e)._tagSubs, { tagName: 'tag1' });
-        expect(item).toBeDefined();
-
-        expect((<any>e)._subs.length).toEqual(0);
-    });
-
-    it('should add Promise Subscription without tag', () => {
-        var e = new evilduck.EventSubscription('event1');
-        e.subscribePromise(() => {
-            var deferred = $q.defer();
-
-            setTimeout(() => {
-                $rootScope.$apply(() => {
-                    deferred.resolve(1);
-                });
-            }, 1);
-
-            return deferred.promise;
-        });
 
         var item = _.findWhere((<any>e)._tagSubs, { tagName: 'tag1' });
         expect(item).toBeFalsy();
@@ -440,19 +255,11 @@ describe('Wrapping multiple subscriptions', () => {
 
         eventSubscription = new evilduck.EventSubscription('event-1');
         eventSubscription.subscribe(tag1Func1, 'tag1');
-        eventSubscription.subscribeGeneral(tag1Func2, 'tag1');
-        eventSubscription.subscribeBasic(tag1Func1, 'tag1');
-        eventSubscription.subscribePromise(tag1Func2, 'tag1');
-
+        eventSubscription.subscribe(tag1Func2, 'tag1');
         eventSubscription.subscribe(tag2Func1, 'tag2');
-        eventSubscription.subscribeGeneral(tag2Func2, 'tag2');
-        eventSubscription.subscribeBasic(tag2Func1, 'tag2');
-        eventSubscription.subscribePromise(tag2Func2, 'tag2');
-
+        eventSubscription.subscribe(tag2Func2, 'tag2');
         eventSubscription.subscribe(subsFunc1);
-        eventSubscription.subscribeGeneral(subsFunc2);
-        eventSubscription.subscribeBasic(subsFunc1);
-        eventSubscription.subscribePromise(subsFunc2);
+        eventSubscription.subscribe(subsFunc2);
     });
 
     it('should invoke all handlers with tag1 when wrapping tag1', (done) => {
@@ -460,7 +267,7 @@ describe('Wrapping multiple subscriptions', () => {
         scope.$apply(() => {
             var promise = eventSubscription.wrap($q, 1, 'tag1');
             promise.then(() => {
-                expect(eventCnt.tag1).toEqual(4);
+                expect(eventCnt.tag1).toEqual(2);
                 expect(eventCnt.tag2).toEqual(0);
                 expect(eventCnt.sub).toEqual(0);
 
@@ -474,9 +281,9 @@ describe('Wrapping multiple subscriptions', () => {
         scope.$apply(() => {
             var promise = eventSubscription.wrap($q, 1);
             promise.then(() => {
-                expect(eventCnt.tag1).toEqual(4);
-                expect(eventCnt.tag2).toEqual(4);
-                expect(eventCnt.sub).toEqual(4);
+                expect(eventCnt.tag1).toEqual(2);
+                expect(eventCnt.tag2).toEqual(2);
+                expect(eventCnt.sub).toEqual(2);
 
                 done();
             });
@@ -588,7 +395,7 @@ describe('Unsubscribing on EventDispatcher', () => {
 
     it('should unsubscribe with SubscriptionInfo (tagged)', () => {
 
-        (<evilduck.SubscriptionInfo>subsInfos.s1).destoy();
+        (<evilduck.SubscriptionInfo>subsInfos.s1).destroy();
 
         expect((<any>eventDispatcher)._innerDict['ev1'].count).toEqual(5);
         expect((<any>eventDispatcher)._innerDict['ev1']._tagSubs.length).toEqual(3);
@@ -597,7 +404,7 @@ describe('Unsubscribing on EventDispatcher', () => {
 
     it('should unsubscribe with SubscriptionInfo (not tagged)', () => {
 
-        (<evilduck.SubscriptionInfo>subsInfos.s5).destoy();
+        (<evilduck.SubscriptionInfo>subsInfos.s5).destroy();
 
         expect((<any>eventDispatcher)._innerDict['ev1'].count).toEqual(5);
         expect((<any>eventDispatcher)._innerDict['ev1']._subs.length).toEqual(1);

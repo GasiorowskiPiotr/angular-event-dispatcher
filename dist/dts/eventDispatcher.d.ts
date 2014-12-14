@@ -28,7 +28,7 @@ declare module evilduck {
         private isDestroyed;
         private dispatcher;
         private guid;
-        destoy(): void;
+        destroy(): void;
         Dispatcher: EventDispatcher;
     }
 }

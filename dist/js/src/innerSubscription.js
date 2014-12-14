@@ -1,22 +1,22 @@
 var evilduck;
 (function (evilduck) {
-    var GeneralSubscription = (function () {
-        function GeneralSubscription(func, guid) {
+    var InnerSubscription = (function () {
+        function InnerSubscription(func, guid) {
             if (guid === void 0) { guid = null; }
             this._func = func;
             this._guid = guid;
         }
-        GeneralSubscription.prototype.wrap = function ($q, data) {
+        InnerSubscription.prototype.wrap = function ($q, data) {
             return $q.when(this._func(data));
         };
-        Object.defineProperty(GeneralSubscription.prototype, "guid", {
+        Object.defineProperty(InnerSubscription.prototype, "guid", {
             get: function () {
                 return this._guid;
             },
             enumerable: true,
             configurable: true
         });
-        return GeneralSubscription;
+        return InnerSubscription;
     })();
-    evilduck.GeneralSubscription = GeneralSubscription;
+    evilduck.InnerSubscription = InnerSubscription;
 })(evilduck || (evilduck = {}));

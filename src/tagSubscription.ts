@@ -4,25 +4,9 @@
         private _sub: ISubscription;
         private _guid: string;
 
-        public static Basic(tagName: string, func: (any) => any, guid: string = null): TagSubscription {
-            var s = new TagSubscription();
-            s._sub = new BasicSubscription(func, guid);
-            s._tagName = tagName;
-
-            return s;
-        }
-
-        public static Promise(tagName: string, func: (any) => ng.IPromise<any>, guid: string = null): TagSubscription {
-            var s = new TagSubscription();
-            s._sub = new PromiseSubscription(func, guid);
-            s._tagName = tagName;
-
-            return s;
-        }
-
         public static General(tagName: string, func: (any) => any, guid: string = null): TagSubscription {
             var s = new TagSubscription();
-            s._sub = new GeneralSubscription(func, guid);
+            s._sub = new InnerSubscription(func, guid);
             s._tagName = tagName;
 
             return s;

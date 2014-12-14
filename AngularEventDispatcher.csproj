@@ -26,11 +26,9 @@
   </ItemGroup>
   <ItemGroup>
     <TypeScriptCompile Include="app.ts" />
-    <TypeScriptCompile Include="src\basicSubscription.ts" />
     <TypeScriptCompile Include="src\eventDispatcher.ts" />
     <TypeScriptCompile Include="src\eventSubscription.ts" />
-    <TypeScriptCompile Include="src\generalSubscription.ts" />
-    <TypeScriptCompile Include="src\promiseSubscription.ts" />
+    <TypeScriptCompile Include="src\innerSubscription.ts" />
     <TypeScriptCompile Include="src\main.ts" />
     <TypeScriptCompile Include="src\tagSubscription.ts" />
     <TypeScriptCompile Include="test\src\subscription.spec.ts" />
