@@ -10,6 +10,7 @@
 
 /// <reference path="../../src/qWrapper.ts"/>
 /// <reference path="../../src/collWrapper.ts"/>
+/// <reference path="../../src/ngEventDispatcher.ts"/>
 
 describe("Inner Subscription Tests", () => {
     var $q: ng.IQService;
@@ -426,3 +427,105 @@ describe('Unsubscribing on EventDispatcher', () => {
 
     });
 });
+
+describe('Using ngOn while subscribing', () => {
+
+    var $q: ng.IQService;
+    var $rootScope: ng.IRootScopeService;
+    var scope: ng.IScope;
+    var eventCnt: any;
+
+    var _collWrapper: evilduck.underscore.Underscore;
+    var _qWrapper: evilduck.angular.QService;
+
+    var eventDispatcher: evilduck.angular.NgEventDispatcher;
+
+    beforeEach(module('evilduck.eventDispatcher'));
+
+    beforeEach(inject((_$q_: ng.IQService, _$rootScope_: ng.IRootScopeService) => {
+        $q = _$q_;
+        $rootScope = _$rootScope_;
+        scope = $rootScope.$new();
+        _collWrapper = new evilduck.underscore.Underscore();
+        _qWrapper = new evilduck.angular.QService($q, _collWrapper);
+    }));
+
+    beforeEach(() => {
+
+        eventCnt = {
+            tag1: 0,
+            tag2: 0,
+            sub: 0
+        };
+
+        var tag1Func1 = () => {
+            eventCnt.tag1++;
+        };
+
+        var tag1Func2 = () => {
+            var deferred = $q.defer();
+            setTimeout(() => {
+                scope.$apply(() => {
+                    eventCnt.tag1++;
+                    deferred.resolve();
+                });
+            });
+
+            return deferred.promise;
+        };
+
+        var tag2Func1 = () => {
+            eventCnt.tag2++;
+        };
+
+        var tag2Func2 = () => {
+
+            var deferred = $q.defer();
+            setTimeout(() => {
+                scope.$apply(() => {
+                    eventCnt.tag2++;
+                    deferred.resolve();
+                });
+            });
+
+            return deferred.promise;
+        };
+
+        var subsFunc1 = () => {
+            eventCnt.sub++;
+        };
+
+        var subsFunc2 = () => {
+
+            var deferred = $q.defer();
+            setTimeout(() => {
+                scope.$apply(() => {
+                    eventCnt.sub++;
+                    deferred.resolve();
+                });
+            });
+
+            return deferred.promise;
+        };
+
+        eventDispatcher = new evilduck.angular.NgEventDispatcher(_qWrapper, _collWrapper);
+        eventDispatcher.ngOn(scope, 'ev1', tag1Func1, 'tag1');
+        eventDispatcher.ngOn(scope, 'ev1', tag1Func2, 'tag1');
+        eventDispatcher.ngOn(scope, 'ev1', tag2Func1, 'tag2');
+        eventDispatcher.ngOn(scope, 'ev1', tag2Func1, 'tag2');
+        eventDispatcher.ngOn(scope, 'ev1', subsFunc1);
+        eventDispatcher.ngOn(scope, 'ev1', subsFunc2);
+
+        eventDispatcher.ngOn(scope, 'ev2', tag1Func1, 'tag1');
+        eventDispatcher.ngOn(scope, 'ev2', tag1Func2, 'tag1');
+        eventDispatcher.ngOn(scope, 'ev2', subsFunc1);
+        eventDispatcher.ngOn(scope, 'ev2', subsFunc2);
+
+        scope.$destroy();
+    });
+
+
+    it('should destroy subscription when $scope is destroyed', () => {
+        expect((<any>eventDispatcher)._innerDict['ev1']).toBeUndefined();
+    });
+})

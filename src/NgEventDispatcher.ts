@@ -10,7 +10,7 @@ module evilduck {
                 var subsInfo = this.on(event, handler, tag);
                 if (subsInfo) {
 
-                    $scope.$on('destroy', () => {
+                    $scope.$on('$destroy', () => {
                         subsInfo.destroy();
                     });
                 }
